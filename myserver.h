@@ -15,6 +15,15 @@ private:
         while(waitpid(-1, NULL, WNOHANG) > 0);
     }
 
+    /******************************************************************************
+    * Name          : findClientDetails
+
+    * Description   : finds all clients connected to socket provided
+
+    * Parameters    :
+        int&    r   : port number of connected socket
+
+    ******************************************************************************/
     void findClientDetails(int& r)
     {
         socklen_t len;
@@ -53,6 +62,14 @@ public:
         setIPdetails();
     }
 
+    /******************************************************************************
+    * Name          : createServer
+
+    * Description   : creates the server process to listen to incoming TCP messages
+
+    * Parameters    : None
+
+    ******************************************************************************/
     void createServer()
     {
         struct sockaddr_storage their_addr; // connector's address information
