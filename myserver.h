@@ -15,21 +15,22 @@ private:
         while(waitpid(-1, NULL, WNOHANG) > 0);
     }
 
-    void findClientDetails(int& r) {
+    void findClientDetails(int& r)
+    {
         socklen_t len;
         struct sockaddr_storage addr;
         char ipstr[INET6_ADDRSTRLEN];
         int c_port;
 
         len = sizeof addr;
-        getpeername(r, (struct sockaddr*)&addr, &len);
+        if (getpeername(r, (struct sockaddr*)&addr, &len) == -1)
+            throw "ERROR: Unable to get client details.";
 
-        // deal with both IPv4 and IPv6:
         if (addr.ss_family == AF_INET) {
             struct sockaddr_in *s = (struct sockaddr_in *)&addr;
             c_port = ntohs(s->sin_port);
             inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
-        } else { // AF_INET6
+        } else {
             struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
             c_port = ntohs(s->sin6_port);
             inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
@@ -56,7 +57,8 @@ public:
     {
         struct sockaddr_storage their_addr; // connector's address information
         socklen_t sin_size;
-        for (auto a=result; a; a=a->ai_next) {
+        auto a=result;
+        for (; a; a=a->ai_next) {
             if (createSocket(a) == -1)
                 throw "ERROR: Creating socket.";
             int yes=1;
@@ -71,6 +73,11 @@ public:
                 continue;
             }
             break;
+        }
+
+        if (!a) {
+            fprintf(stderr, "server: failed to connect\n");
+            return;
         }
 
         if (listen(sockfd, BACKLOG) == -1) {
